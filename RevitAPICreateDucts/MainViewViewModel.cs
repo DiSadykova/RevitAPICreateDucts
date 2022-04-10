@@ -20,17 +20,18 @@ namespace RevitAPICreateDucts
         public DelegateCommand SaveCommand { get; }
         public double DuctHeight { get; set; }
         public List<XYZ> Points { get; } = new List<XYZ>();
-        public WallType SelectedDuctType { get; set; }
+        public DuctType SelectedDuctType { get; set; }
         public Level SelectedLevel { get; set; }
 
         public MainViewViewModel(ExternalCommandData commandData)
         {
             _commandData = commandData;
+            Points = SelectionUtils.GetDuctPoints(_commandData, "Выберите точки", ObjectSnapTypes.Endpoints);
+            DuctHeight = 100;
             DuctTypes = DuctsUtils.GetDuctTypes(commandData);
             Levels = LevelsUtils.GetLevels(commandData);
             SaveCommand = new DelegateCommand(OnSaveCommand);
-            DuctHeight = 100;
-            Points = SelectionUtils.GetPoints(_commandData, "Выберите точки", ObjectSnapTypes.Endpoints);
+
 
         }
 
@@ -45,7 +46,14 @@ namespace RevitAPICreateDucts
                 SelectedLevel == null)
                 return;
 
+            MEPSystemType systemType = new FilteredElementCollector(doc)
+                .OfClass(typeof(MEPSystemType))
+                .Cast<MEPSystemType>()
+                .FirstOrDefault(m => m.SystemClassification == MEPSystemClassification.SupplyAir);
+
             var curves = new List<Curve>();
+            XYZ startPoint = null;
+            XYZ endPoint = null;
             for (int i = 0; i > Points.Count; i++)
             {
                 if (i == 0)
@@ -53,20 +61,33 @@ namespace RevitAPICreateDucts
 
                 var prevPoint = Points[i - 1];
                 var currentPoint = Points[i];
-
+                startPoint = prevPoint;
+                endPoint = currentPoint;
+                Curve curve = Line.CreateBound(prevPoint, currentPoint);
                 curves.Add(curve);
             }
-
             using (var ts = new Transaction(doc, "Create duct"))
             {
                 ts.Start();
+
                 foreach (var curve in curves)
                 {
-                    Wall.Create(doc,)
-                    Duct.Create(doc,system);
+
+                    Duct duct = Duct.Create(doc, systemType.Id, SelectedDuctType.Id, SelectedLevel.Id, startPoint, endPoint);
+                    Parameter ductHeight = duct.get_Parameter(BuiltInParameter.RBS_OFFSET_PARAM);
+                    ductHeight.Set(UnitUtils.ConvertToInternalUnits(DuctHeight, UnitTypeId.Millimeters));
                 }
                 ts.Commit();
+                
             }
+
+            RaiseCloseRequest();
+        }
+
+        public event EventHandler CloseRequest;
+        private void RaiseCloseRequest()
+        {
+            CloseRequest?.Invoke(this, EventArgs.Empty);
         }
     }
 }

@@ -81,7 +81,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\DiSadykova\RevitAPITrainingLibrary\RevitAPITrainingLibrary\RevitAPITrainingLibrary.csproj">
+    <ProjectReference Include="..\..\RevitAPITrainingLibrary\RevitAPITrainingLibrary\RevitAPITrainingLibrary.csproj">
       <Project>{84354415-aa3f-458b-9b6e-52f577ac4ca5}</Project>
       <Name>RevitAPITrainingLibrary</Name>
     </ProjectReference>
