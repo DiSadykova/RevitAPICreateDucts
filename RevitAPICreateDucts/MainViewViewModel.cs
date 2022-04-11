@@ -50,15 +50,12 @@ namespace RevitAPICreateDucts
                 .OfClass(typeof(MEPSystemType))
                 .Cast<MEPSystemType>()
                 .FirstOrDefault(m => m.SystemClassification == MEPSystemClassification.SupplyAir);
-
-            var curves = new List<Curve>();
-            
             
             
             using (var ts = new Transaction(doc, "Create duct"))
             {
                 ts.Start();
-                for (int i = 0; i > Points.Count; i++)
+                for (int i = 0; i < Points.Count; i++)
                 {
                     if (i == 0)
                         continue;
