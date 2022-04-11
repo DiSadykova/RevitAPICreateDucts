@@ -52,28 +52,21 @@ namespace RevitAPICreateDucts
                 .FirstOrDefault(m => m.SystemClassification == MEPSystemClassification.SupplyAir);
 
             var curves = new List<Curve>();
-            XYZ startPoint = null;
-            XYZ endPoint = null;
-            for (int i = 0; i > Points.Count; i++)
-            {
-                if (i == 0)
-                    continue;
-
-                var prevPoint = Points[i - 1];
-                var currentPoint = Points[i];
-                startPoint = prevPoint;
-                endPoint = currentPoint;
-                Curve curve = Line.CreateBound(prevPoint, currentPoint);
-                curves.Add(curve);
-            }
+            
+            
+            
             using (var ts = new Transaction(doc, "Create duct"))
             {
                 ts.Start();
-
-                foreach (var curve in curves)
+                for (int i = 0; i > Points.Count; i++)
                 {
+                    if (i == 0)
+                        continue;
 
-                    Duct duct = Duct.Create(doc, systemType.Id, SelectedDuctType.Id, SelectedLevel.Id, startPoint, endPoint);
+                    XYZ prevPoint = Points[i - 1];
+                    XYZ currentPoint = Points[i];
+                
+                    Duct duct = Duct.Create(doc, systemType.Id, SelectedDuctType.Id, SelectedLevel.Id, prevPoint, currentPoint);
                     Parameter ductHeight = duct.get_Parameter(BuiltInParameter.RBS_OFFSET_PARAM);
                     ductHeight.Set(UnitUtils.ConvertToInternalUnits(DuctHeight, UnitTypeId.Millimeters));
                 }
